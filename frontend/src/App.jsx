@@ -1,11 +1,17 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import axios from "axios";
+import RainingLetters from "./components/ui/modern-animated-hero-section";
+import { AnimatedSubNav } from "./components/ui/animated-nav";
+import { MenuVertical } from "./components/ui/menu-vertical";
+import { GlassButton } from "./components/ui/glass-button";
+import { Shield } from "lucide-react";
 
 // ─── DESIGN TOKENS ────────────────────────────────────────────────────────────
+const C = { bg: "#0d0d0d", sidebar: "rgba(10,10,10,0.75)", panel: "rgba(255,255,255,0.04)", card: "rgba(255,255,255,0.06)", border: "rgba(255,255,255,0.08)", text: "#e8e8e8", muted: "#888888", dim: "#555555", accent: "#4a9eff", green: "#3d8b6e" };
 const RISK = {
-  HIGH: { border: "border-red-500", bg: "bg-red-950/40", text: "text-red-400", pill: "bg-red-500/20 text-red-400 border border-red-500/30", dot: "#ef4444", label: "HIGH" },
-  MEDIUM: { border: "border-amber-500", bg: "bg-amber-950/40", text: "text-amber-400", pill: "bg-amber-500/20 text-amber-400 border border-amber-500/30", dot: "#f59e0b", label: "MEDIUM" },
-  LOW: { border: "border-emerald-500", bg: "bg-emerald-950/40", text: "text-emerald-400", pill: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30", dot: "#10b981", label: "LOW" },
+  HIGH: { border: "border-[#5c2626]", bg: "bg-[#2a1a1a]", text: "text-[#e06060]", pill: "bg-[#2c2020] text-[#e06060]", dot: "#e06060", label: "HIGH" },
+  MEDIUM: { border: "border-[#5c4a26]", bg: "bg-[#2a2518]", text: "text-[#d4a050]", pill: "bg-[#2c2818] text-[#d4a050]", dot: "#d4a050", label: "MEDIUM" },
+  LOW: { border: "border-[#264a36]", bg: "bg-[#1a2a22]", text: "text-[#3d8b6e]", pill: "bg-[#1c2c22] text-[#3d8b6e]", dot: "#3d8b6e", label: "LOW" },
 };
 
 const DEMO_EMAIL_SENDER = "support@paypa1-secure.com";
@@ -102,28 +108,29 @@ function generateExplanations(result) {
 }
 
 // ─── SHARED UI ────────────────────────────────────────────────────────────────
-function SectionLabel({ children, className = "" }) { return <p className={`text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2 ${className}`}>{children}</p>; }
+function SectionLabel({ children, className = "" }) { return <p className={`text-[13px] font-semibold uppercase tracking-widest mb-3 ${className}`} style={{ color: C.muted }}>{children}</p>; }
+function SectionTitle({ children }) { return <h2 className="text-xl font-bold mb-1" style={{ color: C.text }}>{children}</h2>; }
 function Badge({ text, type = "gray" }) {
-  const map = { gray: "bg-slate-800 text-slate-300 border border-slate-700", red: "bg-red-500/20 text-red-400 border border-red-500/30", amber: "bg-amber-500/20 text-amber-400 border border-amber-500/30", green: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30", blue: "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30", purple: "bg-violet-500/20 text-violet-400 border border-violet-500/30" };
-  return <span className={`inline-block text-xs font-medium px-2.5 py-1 rounded-md mr-1 mb-1 ${map[type] ?? map.gray}`}>{text}</span>;
+  const map = { gray: "bg-[#2c2c2c] text-[#999]", red: "bg-[#2c2020] text-[#e06060]", amber: "bg-[#2c2818] text-[#d4a050]", green: "bg-[#1c2c22] text-[#3d8b6e]", blue: "bg-[#1a2535] text-[#4a9eff]", purple: "bg-[#251a35] text-[#9a7aef]" };
+  return <span className={`inline-block text-[12px] font-medium px-2.5 py-1 rounded mr-1.5 mb-1.5 ${map[type] ?? map.gray}`}>{text}</span>;
 }
 function PassFail({ ok, yes, no }) { return ok ? <Badge text={yes} type="green" /> : <Badge text={no} type="red" />; }
-function Divider({ className = "" }) { return <div className={`border-t border-slate-800 my-4 ${className}`} />; }
-function Card({ children, className = "" }) { return <div className={`bg-slate-900 border border-slate-800 rounded-xl p-4 ${className}`}>{children}</div>; }
+function Divider({ className = "" }) { return <div className={`my-4 ${className}`} style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }} />; }
+function Card({ children, className = "" }) { return <div className={`py-4 ${className}`}>{children}</div>; }
 
 // ─── RISK GAUGE ───────────────────────────────────────────────────────────────
 function RiskGauge({ score = 0, level = "LOW", size = 130 }) {
   const r = 46, circ = 2 * Math.PI * r, fill = circ - (Math.min(score, 100) / 100) * circ;
-  const col = RISK[level]?.dot ?? "#64748b", cx = size / 2;
+  const col = RISK[level]?.dot ?? "#555", cx = size / 2;
   return (
     <div className="flex flex-col items-center">
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <circle cx={cx} cy={cx} r={r} fill="none" stroke="#1e293b" strokeWidth="9" />
+        <circle cx={cx} cy={cx} r={r} fill="none" stroke="#2a2a2a" strokeWidth="9" />
         <circle cx={cx} cy={cx} r={r} fill="none" stroke={col} strokeWidth="9" strokeDasharray={circ} strokeDashoffset={fill} strokeLinecap="round" transform={`rotate(-90 ${cx} ${cx})`} style={{ transition: "stroke-dashoffset 0.6s ease" }} />
         <text x={cx} y={cx - 6} textAnchor="middle" fontSize="22" fontWeight="700" fill={col}>{score}</text>
-        <text x={cx} y={cx + 12} textAnchor="middle" fontSize="10" fill="#475569">/100</text>
+        <text x={cx} y={cx + 12} textAnchor="middle" fontSize="10" fill="#555">/100</text>
       </svg>
-      <span className={`text-xs font-bold px-3 py-1 rounded-full mt-1 ${RISK[level]?.pill ?? "bg-slate-800 text-slate-400"}`}>{level} RISK</span>
+      <span className={`text-[11px] font-medium px-2 py-0.5 rounded mt-1 ${RISK[level]?.pill ?? "bg-[#2c2c2c] text-[#777]"}`}>{level} RISK</span>
     </div>
   );
 }
@@ -140,18 +147,18 @@ function LiveWaveform({ active, analyserRef }) {
       if (active && analyserRef.current) {
         const buf = new Uint8Array(analyserRef.current.frequencyBinCount);
         analyserRef.current.getByteTimeDomainData(buf);
-        ctx.beginPath(); ctx.strokeStyle = "#06b6d4"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.strokeStyle = "#4a9eff"; ctx.lineWidth = 1.5;
         buf.forEach((v, i) => { const x = (i / buf.length) * W, y = ((v / 128) * H) / 2; i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); });
         ctx.lineTo(W, H / 2); ctx.stroke();
       } else {
-        ctx.beginPath(); ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.strokeStyle = "#2a2a2a"; ctx.lineWidth = 1;
         for (let x = 0; x < W; x++) { const y = H / 2 + Math.sin(x * 0.08) * 4 + Math.cos(x * 0.15) * 2; x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
         ctx.stroke();
       }
     };
     draw(); return () => cancelAnimationFrame(rafRef.current);
   }, [active, analyserRef]);
-  return <canvas ref={canvasRef} width={500} height={60} className="w-full h-14 rounded-lg bg-slate-950" />;
+  return <canvas ref={canvasRef} width={500} height={60} className="w-full h-14 rounded" style={{ background: "rgba(0,0,0,0.3)" }} />;
 }
 
 // ─── FILE UPLOAD SCANNER ──────────────────────────────────────────────────────
@@ -162,12 +169,12 @@ function FileUploadScanner() {
   const onDrop = (e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f); };
   const rc = { HIGH: { bg: "bg-red-950/40", border: "border-red-500/50", pill: "bg-red-500/20 text-red-400" }, MEDIUM: { bg: "bg-amber-950/40", border: "border-amber-500/50", pill: "bg-amber-500/20 text-amber-400" }, LOW: { bg: "bg-emerald-950/40", border: "border-emerald-500/50", pill: "bg-emerald-500/20 text-emerald-400" } };
   return (
-    <Card>
-      <div className="flex items-center gap-2 mb-3"><SectionLabel>File scanner</SectionLabel><span className="text-xs bg-slate-800 text-slate-500 px-2 py-0.5 rounded-md border border-slate-700">metadata only</span></div>
-      <div onDragOver={(e) => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={onDrop} onClick={() => inputRef.current?.click()} className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${dragging ? "border-cyan-500 bg-cyan-950/20" : "border-slate-700 hover:border-slate-600 hover:bg-slate-800/50"}`}>
-        <span className="text-2xl block mb-2">📁</span>
-        <p className="text-sm font-medium text-slate-400">Drop a file or click to browse</p>
-        <p className="text-xs text-slate-600 mt-1">Filename, size, type only — never leaves device</p>
+    <div className="py-4">
+      <div className="flex items-center gap-2 mb-4"><SectionTitle>File Scanner</SectionTitle><span className="text-[12px] px-2 py-0.5 rounded" style={{ background: "rgba(255,255,255,0.06)", color: C.muted, border: "1px solid rgba(255,255,255,0.08)" }}>metadata only</span></div>
+      <div onDragOver={(e) => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={onDrop} onClick={() => inputRef.current?.click()} className="rounded-xl p-8 text-center cursor-pointer transition-all" style={{ border: `1.5px dashed ${dragging ? C.accent : "rgba(255,255,255,0.12)"}`, background: dragging ? "rgba(74,158,255,0.05)" : "rgba(255,255,255,0.02)" }}>
+        <span className="text-3xl block mb-3">📁</span>
+        <p className="text-[16px] font-semibold" style={{ color: C.muted }}>Drop a file or click to browse</p>
+        <p className="text-[13px] mt-1" style={{ color: C.dim }}>Filename, size, type only — never leaves device</p>
         <input ref={inputRef} type="file" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
       </div>
       {scanResult && (
@@ -182,10 +189,10 @@ function FileUploadScanner() {
             ))}
           </div>
           {scanResult.flags.length > 0 ? (<div className="space-y-2">{scanResult.flags.map((f, i) => (<div key={i} className={`rounded-lg px-3 py-2 ${f.severity === "HIGH" ? "bg-red-950/60 border border-red-500/30" : "bg-amber-950/60 border border-amber-500/30"}`}><p className={`text-xs font-medium ${f.severity === "HIGH" ? "text-red-400" : "text-amber-400"}`}>⚠ {f.text}</p></div>))}</div>) : (<div className="bg-emerald-950/40 border border-emerald-500/30 rounded-lg px-3 py-2"><p className="text-xs text-emerald-400">✓ No suspicious indicators found</p></div>)}
-          <button onClick={() => { setScanResult(null); if (inputRef.current) inputRef.current.value = ""; }} className="mt-3 text-xs text-slate-600 hover:text-slate-400 transition-colors">Clear</button>
+          <button onClick={() => { setScanResult(null); if (inputRef.current) inputRef.current.value = ""; }} className="mt-3 text-[13px] text-slate-500 hover:text-slate-300 transition-colors">Clear</button>
         </div>
       )}
-    </Card>
+    </div>
   );
 }
 
@@ -195,11 +202,11 @@ function ToneAnalysisCard({ tone }) {
   const { sentiment, tone_risk_score, urgency_count, authority_count, financial_count } = tone;
   const bars = [{ label: "Negative", value: sentiment.negative, color: "bg-red-500" }, { label: "Neutral", value: sentiment.neutral, color: "bg-slate-500" }, { label: "Positive", value: sentiment.positive, color: "bg-emerald-500" }];
   return (
-    <Card>
-      <div className="flex items-center justify-between mb-3"><SectionLabel>Tone analysis</SectionLabel><span className="text-xs text-slate-600">Tone risk: <span className="font-semibold text-slate-400">{tone_risk_score}/25</span></span></div>
-      <div className="space-y-2 mb-4">{bars.map(bar => (<div key={bar.label} className="flex items-center gap-2"><span className="text-xs text-slate-500 w-14">{bar.label}</span><div className="flex-1 bg-slate-800 rounded-full h-1.5"><div className={`${bar.color} h-1.5 rounded-full`} style={{ width: `${Math.round(bar.value * 100)}%`, transition: "width 0.6s ease" }} /></div><span className="text-xs text-slate-600 w-8 text-right">{Math.round(bar.value * 100)}%</span></div>))}</div>
-      <div className="grid grid-cols-3 gap-2">{[{ label: "Urgency", value: urgency_count, color: urgency_count > 0 ? "text-red-400" : "text-slate-600" }, { label: "Authority", value: authority_count, color: authority_count > 0 ? "text-amber-400" : "text-slate-600" }, { label: "Financial", value: financial_count, color: financial_count > 0 ? "text-red-400" : "text-slate-600" }].map(item => (<div key={item.label} className="bg-slate-950/60 rounded-lg p-2 text-center"><p className={`text-lg font-bold ${item.color}`}>{item.value}</p><p className="text-xs text-slate-600 leading-tight">{item.label}</p></div>))}</div>
-    </Card>
+    <div className="py-4">
+      <div className="flex items-center justify-between mb-4"><SectionTitle>Tone analysis</SectionTitle><span className="text-[13px]" style={{ color: C.dim }}>Tone risk: <span className="font-bold" style={{ color: C.muted }}>{tone_risk_score}/25</span></span></div>
+      <div className="space-y-3 mb-5">{bars.map(bar => (<div key={bar.label} className="flex items-center gap-3"><span className="text-[13px] font-medium w-16" style={{ color: C.muted }}>{bar.label}</span><div className="flex-1 rounded-full h-1.5" style={{ background: "rgba(255,255,255,0.08)" }}><div className={`${bar.color} h-1.5 rounded-full`} style={{ width: `${Math.round(bar.value * 100)}%`, transition: "width 0.6s ease" }} /></div><span className="text-[13px] w-9 text-right" style={{ color: C.dim }}>{Math.round(bar.value * 100)}%</span></div>))}</div>
+      <div className="grid grid-cols-3 gap-3">{[{ label: "Urgency", value: urgency_count, color: urgency_count > 0 ? "#e06060" : C.dim }, { label: "Authority", value: authority_count, color: authority_count > 0 ? "#d4a050" : C.dim }, { label: "Financial", value: financial_count, color: financial_count > 0 ? "#e06060" : C.dim }].map(item => (<div key={item.label} className="text-center py-3"><p className="text-2xl font-bold" style={{ color: item.color }}>{item.value}</p><p className="text-[12px] font-medium mt-1" style={{ color: C.dim }}>{item.label}</p></div>))}</div>
+    </div>
   );
 }
 
@@ -250,12 +257,12 @@ function SenderIntelCard({ intel, senderFlags }) {
 // ─── HIGH RISK MODAL ──────────────────────────────────────────────────────────
 function HighRiskModal({ title, subtitle, flags, onClose }) {
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="bg-slate-900 border-2 border-red-500 rounded-2xl shadow-2xl shadow-red-500/20 max-w-md w-full p-8 fade-in">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
+      <div className="max-w-md w-full p-8 rounded fade-in" style={{ background: C.panel, border: "2px solid #e06060" }}>
         <div className="text-center mb-6"><div className="text-5xl mb-3">⚠️</div><h2 className="text-2xl font-bold text-red-400 mb-1">{title}</h2><p className="text-slate-500 text-sm">{subtitle}</p></div>
         <div className="bg-red-950/40 border border-red-500/30 rounded-xl px-4 py-3 mb-5"><p className="text-red-400 text-sm font-semibold mb-1">Do not:</p><ul className="text-red-300/70 text-sm list-disc list-inside space-y-1"><li>Click any links</li><li>Share personal or financial info</li><li>Transfer funds or reset credentials</li></ul></div>
         {flags.length > 0 && (<div className="mb-5"><SectionLabel>Reason flags</SectionLabel><div className="flex flex-wrap">{flags.map((f, i) => <Badge key={i} text={f} type="red" />)}</div></div>)}
-        <button onClick={onClose} className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-semibold transition-colors">I understand — dismiss</button>
+        <GlassButton className="glass-button-danger w-full" size="sm" onClick={onClose} contentClassName="justify-center">I understand — dismiss</GlassButton>
       </div>
     </div>
   );
@@ -377,14 +384,14 @@ function ReportDrawer({ report, onClose }) {
   useEffect(() => { const h = (e) => { if (e.key === "Escape") onClose(); }; window.addEventListener("keydown", h); return () => window.removeEventListener("keydown", h); }, [onClose]);
   return (
     <>
-      <div className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm" onClick={onClose} style={{ animation: "fadeInBg 0.2s ease" }} />
-      <div className="fixed right-0 top-0 h-full w-full max-w-xl bg-slate-950 border-l border-slate-800 z-50 overflow-y-auto shadow-2xl" style={{ animation: "slideInRight 0.25s cubic-bezier(0.16,1,0.3,1)" }}>
-        <div className="sticky top-0 bg-slate-950/95 border-b border-slate-800 px-6 py-4 flex items-center justify-between backdrop-blur-sm z-10">
+      <div className="fixed inset-0 z-40" onClick={onClose} style={{ background: "rgba(0,0,0,0.6)", animation: "fadeInBg 0.2s ease" }} />
+      <div className="fixed right-0 top-0 h-full w-full max-w-xl z-50 overflow-y-auto" style={{ background: "rgba(10,10,12,0.85)", backdropFilter: "blur(24px)", borderLeft: "1px solid rgba(255,255,255,0.08)", animation: "slideInRight 0.2s ease" }}>
+        <div className="sticky top-0 px-6 py-4 flex items-center justify-between z-10" style={{ background: "rgba(10,10,12,0.9)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
           <div>
             <p className="text-sm font-bold text-slate-100">Threat Report</p>
             <p className="text-xs text-slate-600 font-mono">{(report?.generatedAt instanceof Date ? report.generatedAt : new Date(report?.generatedAt)).toLocaleString()}</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-colors text-lg">✕</button>
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded text-sm transition-colors" style={{ background: C.card, color: C.muted }}>✕</button>
         </div>
         <div className="p-6"><FullReport report={report} /></div>
       </div>
@@ -398,7 +405,7 @@ function ReportToast({ report, onView, onDismiss }) {
   const colors = RISK[report.riskLevel] ?? RISK.LOW;
   return (
     <div className="fixed bottom-6 right-6 z-50" style={{ animation: "slideUpToast 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
-      <div className={`bg-slate-900 border-2 ${colors.border} rounded-xl shadow-2xl p-4 w-80 flex items-start gap-3`}>
+      <div className="p-4 w-80 flex items-start gap-3" style={{ background: "rgba(18,18,24,0.9)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px", boxShadow: "0 8px 32px rgba(0,0,0,0.5)", animation: "slideUpToast 0.3s ease" }}>
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${report.riskLevel === "HIGH" ? "bg-red-500/20" : report.riskLevel === "MEDIUM" ? "bg-amber-500/20" : "bg-emerald-500/20"}`}>
           <span className="text-base">{report.type === "email" ? "✉️" : "🎙"}</span>
         </div>
@@ -408,7 +415,7 @@ function ReportToast({ report, onView, onDismiss }) {
           <p className="text-xs text-slate-600 truncate">{report.type === "email" ? `From: ${report.sender}` : `${report.flags?.length ?? 0} flag(s) detected`}</p>
         </div>
         <div className="flex flex-col gap-1 flex-shrink-0">
-          <button onClick={onView} className="text-xs bg-cyan-600 hover:bg-cyan-700 text-white px-3 py-1.5 rounded-lg font-semibold transition-colors">View</button>
+          <GlassButton className="glass-button-accent" size="sm" onClick={onView}>View</GlassButton>
           <button onClick={onDismiss} className="text-xs text-slate-600 hover:text-slate-400 px-3 py-1 transition-colors">Dismiss</button>
         </div>
       </div>
@@ -423,38 +430,38 @@ function LogEntryCard({ report, onClick }) {
   const topFlags = report.type === "email" ? [...(report.senderFlags ?? []), ...(report.indicators ?? [])].slice(0, 3) : (report.flags ?? []).slice(0, 3);
   const topExp = report.explanations?.slice(0, 2) ?? [];
   return (
-    <button onClick={onClick} className={`w-full text-left bg-slate-900 border-l-4 border border-slate-800 ${colors.border} rounded-xl p-5 hover:bg-slate-800/70 transition-all group`}>
+    <button onClick={onClick} className="w-full text-left py-4 hover:bg-white/5 px-4 -mx-4 rounded-xl transition-all group">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-3">
           <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${report.riskLevel === "HIGH" ? "bg-red-500/15" : report.riskLevel === "MEDIUM" ? "bg-amber-500/15" : "bg-emerald-500/15"}`}>
             <span className="text-lg">{report.type === "email" ? "✉️" : "🎙"}</span>
           </div>
           <div>
-            <div className="flex items-center gap-2"><span className="text-sm font-semibold text-slate-200 capitalize">{report.type} analysis</span><span className={`text-xs font-bold px-2 py-0.5 rounded-md ${colors.pill}`}>{report.riskLevel}</span></div>
-            <p className="text-xs text-slate-600 font-mono mt-0.5">{ts.toLocaleString()}</p>
+            <div className="flex items-center gap-2"><span className="text-[16px] font-bold" style={{ color: C.text, textTransform: "capitalize" }}>{report.type} analysis</span><span className={`text-[12px] font-bold px-2.5 py-1 rounded-md ${colors.pill}`}>{report.riskLevel}</span></div>
+            <p className="text-[12px] font-mono mt-0.5" style={{ color: C.dim }}>{ts.toLocaleString()}</p>
           </div>
         </div>
-        <div className="text-right flex-shrink-0"><p className={`text-2xl font-bold ${colors.text}`}>{report.riskScore}</p><p className="text-xs text-slate-700">/100</p></div>
+        <div className="text-right flex-shrink-0"><p className="text-3xl font-bold" style={{ color: colors.dot }}>{report.riskScore}</p><p className="text-[12px]" style={{ color: C.dim }}>/100</p></div>
       </div>
 
-      {report.type === "email" && (<div className="bg-slate-950/60 rounded-lg px-3 py-2 mb-3"><p className="text-xs text-slate-600">From: <span className="text-slate-400 font-mono">{report.sender}</span></p>{report.senderIntel?.lookalike_match && <p className="text-xs text-red-400 mt-0.5">⚠ Spoofs {report.senderIntel.lookalike_match}</p>}</div>)}
-      {report.type === "audio" && report.transcript && (<div className="bg-slate-950/60 rounded-lg px-3 py-2 mb-3"><p className="text-xs text-slate-500 font-mono leading-relaxed" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{report.transcript.slice(0, 120)}{report.transcript.length > 120 ? "…" : ""}</p></div>)}
+      {report.type === "email" && (<div className="mb-4"><p className="text-[14px]" style={{ color: C.muted }}>From: <span className="font-mono text-[13px]">{report.sender}</span></p>{report.senderIntel?.lookalike_match && <p className="text-[13px] text-red-400 mt-1 font-medium">⚠ Spoofs {report.senderIntel.lookalike_match}</p>}</div>)}
+      {report.type === "audio" && report.transcript && (<div className="mb-4"><p className="text-[14px] font-mono leading-relaxed" style={{ color: C.dim, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{report.transcript.slice(0, 120)}{report.transcript.length > 120 ? "…" : ""}</p></div>)}
 
-      <p className="text-xs text-slate-400 leading-relaxed mb-3">{report.summary}</p>
+      <p className="text-[15px] leading-relaxed mb-4" style={{ color: C.text }}>{report.summary}</p>
 
-      {report.attackVector?.length > 0 && (<div className="flex flex-wrap gap-1 mb-3">{report.attackVector.slice(0, 3).map((v, i) => (<span key={i} className="text-xs bg-slate-800 border border-slate-700 text-slate-400 px-2 py-0.5 rounded-md">{v}</span>))}{report.attackVector.length > 3 && <span className="text-xs text-slate-600 px-1 py-0.5">+{report.attackVector.length - 3} more</span>}</div>)}
+      {report.attackVector?.length > 0 && (<div className="flex flex-wrap gap-2 mb-4">{report.attackVector.slice(0, 3).map((v, i) => (<span key={i} className="text-[12px] font-medium px-2.5 py-1 rounded-md" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: C.muted }}>{v}</span>))}{report.attackVector.length > 3 && <span className="text-[12px] px-1 py-1" style={{ color: C.dim }}>+{report.attackVector.length - 3} more</span>}</div>)}
 
-      {topExp.length > 0 && (<div className="space-y-1.5 mb-3">{topExp.map((exp, i) => (<div key={i} className={`flex items-start gap-2 rounded-lg px-3 py-2 ${exp.severity === "high" ? "bg-red-950/30 border border-red-500/20" : "bg-amber-950/30 border border-amber-500/20"}`}><span className="text-xs flex-shrink-0">{exp.icon}</span><p className={`text-xs font-medium ${exp.severity === "high" ? "text-red-400" : "text-amber-400"}`}>{exp.title}</p></div>))}</div>)}
+      {topExp.length > 0 && (<div className="space-y-2 mb-4">{topExp.map((exp, i) => (<div key={i} className="flex items-start gap-2"><span className="text-[15px] flex-shrink-0">{exp.icon}</span><p className={`text-[14px] font-medium ${exp.severity === "high" ? "text-red-400" : "text-amber-400"}`}>{exp.title}</p></div>))}</div>)}
 
-      {topFlags.length > 0 && (<div className="flex flex-wrap gap-1 mb-3">{topFlags.map((f, i) => <Badge key={i} text={f} type="amber" />)}</div>)}
+      {topFlags.length > 0 && (<div className="flex flex-wrap gap-1.5 mb-4">{topFlags.map((f, i) => <Badge key={i} text={f} type="amber" />)}</div>)}
 
-      <div className={`rounded-lg px-3 py-2 ${report.riskLevel === "HIGH" ? "bg-red-950/30 border border-red-500/20" : report.riskLevel === "MEDIUM" ? "bg-amber-950/30 border border-amber-500/20" : "bg-emerald-950/30 border border-emerald-500/20"}`}>
-        <p className={`text-xs font-medium ${colors.text}`}>{report.recommendation}</p>
+      <div className="py-2">
+        <p className="text-[14px] font-medium" style={{ color: colors.dot }}>{report.recommendation}</p>
       </div>
 
-      <div className="flex items-center gap-1.5 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-        <span className="text-xs text-slate-600">Click to open full report</span>
-        <span className="text-xs text-slate-700">→</span>
+      <div className="flex items-center gap-1.5 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <span className="text-[13px]" style={{ color: C.accent }}>Click to open full report</span>
+        <span className="text-[13px]" style={{ color: C.accent }}>→</span>
       </div>
     </button>
   );
@@ -467,30 +474,43 @@ function LogsPanel({ reports, onOpenReport }) {
   const highCount = reports.filter(r => r.riskLevel === "HIGH").length;
   return (
     <div>
-      <div className="flex items-center justify-between mb-5 gap-3">
-        <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-lg p-1">
-          {[{ id: "all", label: `All (${reports.length})` }, { id: "email", label: `✉️ Email (${reports.filter(r => r.type === "email").length})` }, { id: "audio", label: `🎙 Audio (${reports.filter(r => r.type === "audio").length})` }].map(f => (
-            <button key={f.id} onClick={() => setFilter(f.id)} className={`text-xs px-3 py-1.5 rounded-md font-semibold transition-colors ${filter === f.id ? "bg-slate-700 text-slate-100" : "text-slate-600 hover:text-slate-400"}`}>{f.label}</button>
-          ))}
-        </div>
-        {highCount > 0 && <span className="text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-2.5 py-1 rounded-full font-bold">{highCount} HIGH risk</span>}
+      <div className="flex items-center justify-between mb-6 gap-3">
+        <AnimatedSubNav
+          items={[
+            { id: "all", label: "All", count: reports.length },
+            { id: "email", label: "Email", count: reports.filter(r => r.type === "email").length },
+            { id: "audio", label: "Audio", count: reports.filter(r => r.type === "audio").length },
+          ]}
+          activeId={filter}
+          onItemClick={(id) => setFilter(id)}
+        />
+        {highCount > 0 && <span className="text-[13px] font-bold px-3 py-1 rounded-full" style={{ background: "rgba(224,96,96,0.15)", color: "#e06060", border: "1px solid rgba(224,96,96,0.25)" }}>{highCount} HIGH risk</span>}
       </div>
 
       {reports.length > 0 && (
-        <div className="grid grid-cols-3 gap-3 mb-5">
-          {[{ label: "Total scans", value: reports.length, color: "text-cyan-400" }, { label: "High risk", value: reports.filter(r => r.riskLevel === "HIGH").length, color: "text-red-400" }, { label: "Clean", value: reports.filter(r => r.riskLevel === "LOW").length, color: "text-emerald-400" }].map(item => (
-            <div key={item.label} className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
-              <p className={`text-3xl font-bold ${item.color}`}>{item.value}</p>
-              <p className="text-xs text-slate-600 mt-1">{item.label}</p>
+        <div className="flex gap-8 mb-6">
+          {[{ label: "Total scans", value: reports.length, color: C.accent }, { label: "High risk", value: reports.filter(r => r.riskLevel === "HIGH").length, color: "#e06060" }, { label: "Clean", value: reports.filter(r => r.riskLevel === "LOW").length, color: "#3d8b6e" }].map(item => (
+            <div key={item.label}>
+              <p className="text-3xl font-bold" style={{ color: item.color }}>{item.value}</p>
+              <p className="text-[13px] font-medium mt-0.5" style={{ color: C.dim }}>{item.label}</p>
             </div>
           ))}
         </div>
       )}
 
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center"><span className="text-4xl mb-4">📋</span><p className="text-sm text-slate-500">No {filter !== "all" ? filter : ""} reports yet</p><p className="text-xs text-slate-700 mt-1">Completed analyses will appear here</p></div>
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <span className="text-4xl mb-4">📋</span>
+          <p className="text-[17px] font-bold" style={{ color: C.muted }}>No {filter !== "all" ? filter : ""} reports yet</p>
+          <p className="text-[13px] mt-1" style={{ color: C.dim }}>Completed analyses will appear here</p>
+        </div>
       ) : (
-        <div className="space-y-4">{filtered.map(report => (<LogEntryCard key={report.id} report={report} onClick={() => onOpenReport(report)} />))}</div>
+        <div>{filtered.map((report, i) => (
+          <div key={report.id}>
+            <LogEntryCard report={report} onClick={() => onOpenReport(report)} />
+            {i < filtered.length - 1 && <Divider />}
+          </div>
+        ))}</div>
       )}
     </div>
   );
@@ -531,26 +551,44 @@ function EmailPanel({ simTrigger, onReportGenerated }) {
   return (
     <>
       {modal && result && (<HighRiskModal title="High Risk Email Detected" subtitle="Strong signs of a phishing attempt" flags={[...(result.indicators ?? []), ...(result.sender_flags ?? []), ...(result.url_flags ?? [])]} onClose={() => setModal(false)} />)}
-      <div className="flex flex-col gap-4">
-        <Card>
-          <SectionLabel>Email Shield</SectionLabel>
-          <div className="space-y-3">
-            <div><label className="block text-xs text-slate-600 mb-1">Sender email</label><input type="text" placeholder="sender@domain.com" value={sender} onChange={e => setSender(e.target.value)} className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50" /></div>
-            <div><label className="block text-xs text-slate-600 mb-1">Email body</label><textarea rows={7} placeholder="Paste email content here..." value={text} onChange={e => setText(e.target.value)} className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 resize-none" /></div>
-            <button onClick={() => analyze()} disabled={loading || !text.trim() || !sender.trim()} className="w-full bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-800 disabled:text-slate-600 text-white py-2.5 rounded-lg text-sm font-semibold transition-colors">{loading ? "Analyzing..." : "Analyze Email"}</button>
-            {error && <p className="text-xs text-red-400 text-center">{error}</p>}
-          </div>
-        </Card>
+      <div className="flex flex-col gap-6">
+
+        {/* ── Input box — only bordered element ── */}
+        <div className="rounded-xl p-5 space-y-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+          <SectionTitle>Email Shield</SectionTitle>
+          <div><label className="block text-[13px] font-medium mb-1.5" style={{ color: C.muted }}>Sender email</label><input type="text" placeholder="sender@domain.com" value={sender} onChange={e => setSender(e.target.value)} className="w-full px-4 py-2.5 rounded-lg text-[15px] focus:outline-none" style={{ background: "rgba(0,0,0,0.4)", border: `1px solid rgba(255,255,255,0.1)`, color: C.text }} /></div>
+          <div><label className="block text-[13px] font-medium mb-1.5" style={{ color: C.muted }}>Email body</label><textarea rows={7} placeholder="Paste email content here..." value={text} onChange={e => setText(e.target.value)} className="w-full px-4 py-2.5 rounded-lg text-[15px] resize-none focus:outline-none" style={{ background: "rgba(0,0,0,0.4)", border: `1px solid rgba(255,255,255,0.1)`, color: C.text }} /></div>
+          <GlassButton className="glass-button-accent w-full" size="default" onClick={() => analyze()} disabled={loading || !text.trim() || !sender.trim()} contentClassName="justify-center text-[15px] font-semibold">{loading ? "Analyzing..." : "Analyze Email"}</GlassButton>
+          {error && <p className="text-[13px] text-red-400 text-center">{error}</p>}
+        </div>
+
+        {/* ── File scanner — input box ── */}
         <FileUploadScanner />
-        {loading && (<Card className="flex flex-col items-center justify-center py-10"><div className="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full mb-3" style={{ animation: "spin 1s linear infinite" }} /><p className="text-sm text-slate-500">Running analysis...</p><p className="text-xs text-slate-700 mt-1">Checking URLhaus threat database...</p></Card>)}
-        {!result && !loading && (<Card className="flex flex-col items-center justify-center py-10 text-center"><span className="text-3xl mb-3">🔍</span><p className="text-sm font-medium text-slate-500">No analysis yet</p><p className="text-xs text-slate-700 mt-1">Paste an email and click Analyze</p></Card>)}
+
+        {/* ── Status — no box ── */}
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="w-8 h-8 border-2 border-t-transparent rounded-full mb-4" style={{ borderColor: C.accent, borderTopColor: "transparent", animation: "spin 1s linear infinite" }} />
+            <p className="text-[16px] font-semibold" style={{ color: C.muted }}>Running analysis...</p>
+            <p className="text-[13px] mt-1" style={{ color: C.dim }}>Checking URLhaus threat database...</p>
+          </div>
+        )}
+        {!result && !loading && (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <span className="text-4xl mb-4">🔍</span>
+            <p className="text-[17px] font-bold" style={{ color: C.muted }}>No analysis yet</p>
+            <p className="text-[13px] mt-1" style={{ color: C.dim }}>Paste an email above and click Analyze</p>
+          </div>
+        )}
         {result && !loading && (
-          <Card className={`border ${RISK[result.risk_level ?? "LOW"].border}`}>
-            <div className="flex items-center justify-between">
-              <div><SectionLabel>Analysis complete</SectionLabel><p className="text-sm text-slate-400">Report saved — switching to Report tab.</p><p className="text-xs text-slate-600 mt-1">Also logged in the <span className="text-cyan-400">Logs</span> tab.</p></div>
-              <RiskGauge score={result.risk_score} level={result.risk_level} size={90} />
+          <div className="flex items-center justify-between py-4">
+            <div>
+              <SectionTitle>Analysis complete</SectionTitle>
+              <p className="text-[15px] font-medium" style={{ color: C.muted }}>Report saved — switching to Report tab.</p>
+              <p className="text-[13px] mt-1" style={{ color: C.dim }}>Also logged in the <span style={{ color: C.accent }}>Logs</span> tab.</p>
             </div>
-          </Card>
+            <RiskGauge score={result.risk_score} level={result.risk_level} size={100} />
+          </div>
         )}
       </div>
     </>
@@ -640,64 +678,70 @@ function AudioPanel({ simTrigger, onReportGenerated }) {
   return (
     <>
       {showModal && (<HighRiskModal title="Social Engineering Detected" subtitle="Do not share credentials or follow call instructions" flags={audioFlags} onClose={() => setShowModal(false)} />)}
-      <div className="flex flex-col gap-4">
-        <Card className={listening ? `border-2 ${colors.border}` : ""}>
+      <div className="flex flex-col gap-6">
+
+        {/* ── Input box — waveform + button ── */}
+        <div className="rounded-xl p-5" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
           <div className="flex items-center justify-between mb-4">
-            <SectionLabel>Audio Shield</SectionLabel>
-            {listening && (<div className="flex items-center gap-3"><span className="text-xs font-mono text-slate-500">{fmt(duration)}</span><div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-red-500" style={{ animation: "pulse 1.5s ease-in-out infinite" }} /><span className="text-xs text-red-400 font-medium">Live</span></div></div>)}
+            <SectionTitle>Audio Shield</SectionTitle>
+            {listening && (<div className="flex items-center gap-3"><span className="text-[13px] font-mono" style={{ color: C.dim }}>{fmt(duration)}</span><div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-red-500" style={{ animation: "pulse 1.5s ease-in-out infinite" }} /><span className="text-[13px] text-red-400 font-semibold">Live</span></div></div>)}
           </div>
-          <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 mb-4"><LiveWaveform active={listening} analyserRef={analyserRef} /></div>
-          <button onClick={listening ? stopListening : startListening} className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${listening ? "bg-red-600 hover:bg-red-700 text-white" : "bg-cyan-600 hover:bg-cyan-700 text-white"}`}><span>{listening ? "⏹" : "🎙"}</span>{listening ? "Stop Audio Shield" : "Start Audio Shield"}</button>
-          {audioError && <p className="text-xs text-red-400 text-center mt-2">{audioError}</p>}
-          {!listening && !sessionEnded && <p className="text-xs text-slate-700 text-center mt-2">Real-time analysis via Deepgram nova-2</p>}
-        </Card>
-        <Card className={listening || sessionEnded ? `border-2 ${colors.border}` : ""}>
-          <div className="flex items-center justify-between mb-4"><SectionLabel>Audio threat level</SectionLabel>{(listening || sessionEnded) && <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${colors.pill}`}>{audioLevel}</span>}</div>
-          <div className={`flex flex-col items-center py-2 ${!listening && !sessionEnded ? "opacity-20" : ""}`}><RiskGauge score={audioScore} level={audioLevel} /></div>
-          {!listening && !sessionEnded && <div className="bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-2 text-center mt-2"><p className="text-slate-700 text-xs">Waiting for audio stream...</p></div>}
-          {sessionEnded && <div className="mt-3 bg-slate-800/60 border border-slate-700 rounded-lg px-3 py-2 text-center"><p className="text-slate-400 text-xs">Session ended — report saved to Logs tab</p></div>}
-        </Card>
-        <Card>
+          <div className="rounded-lg p-3 mb-4" style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.08)" }}><LiveWaveform active={listening} analyserRef={analyserRef} /></div>
+          <GlassButton className={listening ? "glass-button-danger w-full" : "glass-button-accent w-full"} size="default" onClick={listening ? stopListening : startListening} contentClassName="justify-center gap-2 text-[15px] font-semibold"><span>{listening ? "⏹" : "🎙"}</span>{listening ? "Stop Audio Shield" : "Start Audio Shield"}</GlassButton>
+          {audioError && <p className="text-[13px] text-red-400 text-center mt-2">{audioError}</p>}
+          {!listening && !sessionEnded && <p className="text-[13px] text-center mt-2" style={{ color: C.dim }}>Real-time analysis via Deepgram nova-2</p>}
+        </div>
+
+        {/* ── Threat level — no box ── */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <SectionTitle>Audio threat level</SectionTitle>
+            {(listening || sessionEnded) && <span className={`text-[13px] font-bold px-3 py-1.5 rounded-full ${colors.pill}`}>{audioLevel}</span>}
+          </div>
+          <div className={`flex flex-col items-center py-2 ${!listening && !sessionEnded ? "opacity-20" : ""}`}><RiskGauge score={audioScore} level={audioLevel} size={140} /></div>
+          {!listening && !sessionEnded && <p className="text-center text-[14px] mt-4" style={{ color: C.dim }}>Waiting for audio stream...</p>}
+          {sessionEnded && <p className="text-center text-[14px] mt-4 font-medium" style={{ color: C.muted }}>Session ended — report saved to Logs tab</p>}
+        </div>
+
+        {/* ── Transcript — no outer box, scrollable inner ── */}
+        <div>
           <SectionLabel>Live transcript</SectionLabel>
-          <div ref={transcriptRef} className="bg-slate-950 border border-slate-800 rounded-xl p-4 min-h-28 max-h-48 overflow-y-auto">
-            {transcript ? <p className="text-sm text-slate-300 leading-relaxed font-mono">{transcript}</p> : <p className="text-xs text-slate-700 text-center mt-6">{listening ? "Listening..." : "Transcript appears here during analysis"}</p>}
+          <div ref={transcriptRef} className="rounded-xl p-4 min-h-28 max-h-48 overflow-y-auto" style={{ background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.07)" }}>
+            {transcript ? <p className="text-[15px] leading-relaxed font-mono" style={{ color: C.text }}>{transcript}</p> : <p className="text-[13px] text-center mt-6" style={{ color: C.dim }}>{listening ? "Listening..." : "Transcript appears here during analysis"}</p>}
           </div>
-        </Card>
-        <Card>
+        </div>
+
+        {/* ── Audio flags — no box ── */}
+        <div>
           <SectionLabel>Audio flags</SectionLabel>
-          {audioFlags.length > 0 ? <div className="flex flex-wrap">{audioFlags.map((f, i) => <Badge key={i} text={f} type={audioLevel === "HIGH" ? "red" : "amber"} />)}</div> : <div className="space-y-2">{["Synthetic voice detection", "Social engineering phrases", "Authority impersonation"].map(item => (<div key={item} className="flex items-center gap-2 opacity-20"><div className="w-1.5 h-1.5 rounded-full bg-slate-500" /><span className="text-xs text-slate-500">{item}</span></div>))}</div>}
-        </Card>
+          {audioFlags.length > 0
+            ? <div className="flex flex-wrap">{audioFlags.map((f, i) => <Badge key={i} text={f} type={audioLevel === "HIGH" ? "red" : "amber"} />)}</div>
+            : <div className="space-y-2">{["Synthetic voice detection", "Social engineering phrases", "Authority impersonation"].map(item => (
+              <div key={item} className="flex items-center gap-2 opacity-30">
+                <div className="w-1.5 h-1.5 rounded-full" style={{ background: C.dim }} />
+                <span className="text-[14px]" style={{ color: C.muted }}>{item}</span>
+              </div>
+            ))}
+            </div>
+          }
+        </div>
       </div>
     </>
   );
 }
 
-// ─── TAB BAR ──────────────────────────────────────────────────────────────────
-function TabBar({ active, onChange, logCount, hasReport }) {
-  const tabs = [
-    { id: "email", label: "Email Shield", icon: "✉️" },
-    { id: "audio", label: "Audio Shield", icon: "🎙" },
-    { id: "report", label: "Report", icon: "📄", badge: hasReport ? "●" : null },
-    { id: "logs", label: "Logs", icon: "📋", badge: logCount > 0 ? logCount : null },
-  ];
-  return (
-    <div className="flex gap-1 bg-slate-950 border border-slate-800 rounded-xl p-1">
-      {tabs.map(tab => {
-        const isActive = active === tab.id;
-        return (
-          <button key={tab.id} onClick={() => onChange(tab.id)} className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all ${isActive ? "bg-slate-800 text-slate-100 shadow-sm" : "text-slate-600 hover:text-slate-400 hover:bg-slate-900/50"}`}>
-            <span className="text-sm">{tab.icon}</span>
-            <span className="hidden sm:inline">{tab.label}</span>
-            {tab.badge != null && (<span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ml-0.5 ${isActive ? "bg-cyan-500/30 text-cyan-400" : "bg-slate-800 text-slate-500"}`}>{tab.badge}</span>)}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
+// ─── SVG ICONS FOR NAV ────────────────────────────────────────────────────────
+const EmailIcon = (props) => <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>;
+const MicIcon = (props) => <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" x2="12" y1="19" y2="22" /></svg>;
+const FileTextIcon = (props) => <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /><path d="M10 9H8" /><path d="M16 13H8" /><path d="M16 17H8" /></svg>;
+const ClipboardIcon = (props) => <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="M12 11h4" /><path d="M12 16h4" /><path d="M8 11h.01" /><path d="M8 16h.01" /></svg>;
+
+
+
 
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 export default function App() {
+  const [showDashboard, setShowDashboard] = useState(false);
   const [activeTab, setActiveTab] = useState("email");
   const [simTrigger, setSimTrigger] = useState(0);
   const [simRunning, setSimRunning] = useState(false);
@@ -715,45 +759,85 @@ export default function App() {
     setActiveTab("report");
   }, []);
 
+  // ── Landing page ──
+  if (!showDashboard) {
+    return <RainingLetters onStart={() => setShowDashboard(true)} />;
+  }
+
+  // ── Dashboard ──
+  const sidebarItems = [
+    { id: "email", icon: <EmailIcon />, label: "Email Shield", count: reports.filter(r => r.type === "email").length || null },
+    { id: "audio", icon: <MicIcon />, label: "Audio Shield", count: reports.filter(r => r.type === "audio").length || null },
+    { id: "report", icon: <FileTextIcon />, label: "Report", dot: currentReport ? C.accent : null },
+    { id: "logs", icon: <ClipboardIcon />, label: "Logs", count: reports.length || null },
+  ];
+
+  const categories = [
+    { label: "Phishing", count: reports.filter(r => r.riskLevel === "HIGH").length, color: "#e06060" },
+    { label: "Suspicious", count: reports.filter(r => r.riskLevel === "MEDIUM").length, color: "#d4a050" },
+    { label: "Clean", count: reports.filter(r => r.riskLevel === "LOW").length, color: "#3d8b6e" },
+  ];
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100" style={{ fontFamily: "'DM Mono','Fira Code',monospace" }}>
+    <div className="h-screen flex overflow-hidden" style={{ color: C.text, fontFamily: "-apple-system, 'Segoe UI', Inter, Helvetica, Arial, sans-serif", background: "radial-gradient(ellipse 100% 70% at 50% 0%, #0a1a2e 0%, #0d0d0d 55%, #0d0d0d 100%)" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap');
-        *{box-sizing:border-box;}body{background:#020617;}
         @keyframes spin{to{transform:rotate(360deg);}}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes fadeInBg{from{opacity:0}to{opacity:1}}
         @keyframes slideInRight{from{transform:translateX(100%)}to{transform:translateX(0)}}
-        @keyframes slideUpToast{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-        .fade-in{animation:fadeIn 0.3s ease;}
-        ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:#0f172a;}::-webkit-scrollbar-thumb{background:#334155;border-radius:2px;}
+        @keyframes slideUpToast{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeInBg{from{opacity:0}to{opacity:1}}
+        input::placeholder,textarea::placeholder{color:#2a2a2a;}
+        input:focus,textarea:focus{border-color:rgba(74,158,255,0.4)!important;box-shadow:0 0 0 3px rgba(74,158,255,0.08);}
       `}</style>
 
-      <header className="bg-slate-950 border-b border-slate-800/80 px-6 py-4 sticky top-0 z-40" style={{ background: "rgba(2,6,23,0.97)" }}>
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center"><span className="text-base">🛡️</span></div>
-            <div>
-              <h1 className="text-sm font-bold text-slate-100 tracking-wide" style={{ fontFamily: "'DM Sans',sans-serif" }}>PHISHING & DEEPFAKE SHIELD</h1>
-              <p className="text-xs text-slate-600">Real-time threat analysis · Edge mode</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="hidden sm:flex text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full font-medium items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400" style={{ animation: "pulse 2s infinite" }} />Edge Mode</span>
-            <button onClick={runSimulation} disabled={simRunning} className="flex items-center gap-2 bg-red-600 hover:bg-red-700 disabled:bg-red-900 disabled:text-red-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors tracking-wide"><span>⚡</span>{simRunning ? "Running..." : "Red Team Demo"}</button>
-            <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-400" style={{ animation: "pulse 2s infinite" }} /><span className="text-xs text-slate-600">Backend live</span></div>
-          </div>
+      {/* ── Left Sidebar (glass) ── */}
+      <aside className="glass-sidebar flex flex-col w-52 flex-shrink-0">
+        <div className="flex items-center gap-2 px-4 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <Shield className="w-4 h-4" style={{ color: C.accent }} />
+          <span className="text-[13px] font-semibold" style={{ color: C.text }}>PhishNet</span>
+          <span className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: C.green }} />
         </div>
-      </header>
 
-      <main className="max-w-5xl mx-auto px-6 py-6">
-        <div className="mb-6"><TabBar active={activeTab} onChange={setActiveTab} logCount={reports.length} hasReport={!!currentReport} /></div>
-        <div className="fade-in" key={activeTab}>
-          {activeTab === "email" && <EmailPanel simTrigger={simTrigger} onReportGenerated={handleReportGenerated} />}
-          {activeTab === "audio" && <AudioPanel simTrigger={simTrigger} onReportGenerated={handleReportGenerated} />}
-          {activeTab === "report" && <ReportTab report={currentReport} />}
-          {activeTab === "logs" && <LogsPanel reports={reports} onOpenReport={setDrawerReport} />}
+        <nav className="flex-1 px-1 py-3 overflow-y-auto">
+          <MenuVertical
+            menuItems={sidebarItems}
+            activeId={activeTab}
+            onItemClick={(id) => setActiveTab(id)}
+            color={C.accent}
+          />
+          <div className="!mt-3 !mb-2" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }} />
+          <p className="px-2.5 text-[10px] uppercase tracking-widest font-medium mb-1.5" style={{ color: C.dim }}>Threat Overview</p>
+          {categories.map(cat => (
+            <div key={cat.label} className="flex items-center gap-2 px-2.5 py-1 text-[12px]" style={{ color: C.muted }}>
+              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: cat.color }} />
+              <span className="flex-1">{cat.label}</span>
+              <span className="text-[11px] font-mono" style={{ color: C.dim }}>{cat.count}</span>
+            </div>
+          ))}
+        </nav>
+
+        <div className="px-2 py-3" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <GlassButton
+            className="glass-button-danger w-full"
+            size="sm"
+            onClick={runSimulation}
+            disabled={simRunning}
+            contentClassName="justify-center gap-1.5"
+          >
+            <span>⚡</span>{simRunning ? "Running..." : "Red Team Demo"}
+          </GlassButton>
+        </div>
+      </aside>
+
+      {/* ── Main Content ── */}
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-6 py-5">
+          <div className="fade-in" key={activeTab}>
+            {activeTab === "email" && <EmailPanel simTrigger={simTrigger} onReportGenerated={handleReportGenerated} />}
+            {activeTab === "audio" && <AudioPanel simTrigger={simTrigger} onReportGenerated={handleReportGenerated} />}
+            {activeTab === "report" && <ReportTab report={currentReport} />}
+            {activeTab === "logs" && <LogsPanel reports={reports} onOpenReport={setDrawerReport} />}
+          </div>
         </div>
       </main>
 
@@ -762,3 +846,5 @@ export default function App() {
     </div>
   );
 }
+
+
