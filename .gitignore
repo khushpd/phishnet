@@ -1,6 +1,29 @@
-venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env
+build/
+dist/
+*.spec
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+frontend/dist/
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Project Specific
 backend/dataset/
 backend/deepfake_model.pkl
+backend/models/*.onnx
+.agents/
+.gemini/

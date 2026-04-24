@@ -214,7 +214,8 @@ function ConfidenceBreakdown({ result }) {
   if (!result) return null;
   const mlPct = result.ml_score ?? 0, tonePct = Math.round(result.tone_analysis?.tone_risk_score ?? 0);
   const urlHit = (result.urlhaus_results ?? []).some(r => r.is_malicious), domainScore = Math.min((result.sender_flags ?? []).length * 6, 30);
-  const bars = [{ label: "ML model", value: mlPct, max: 35, color: "bg-cyan-500", tip: "BERT phishing classifier" }, { label: "Tone", value: tonePct, max: 25, color: "bg-violet-500", tip: "Sentiment + authority" }, { label: "Domain intel", value: domainScore, max: 30, color: "bg-amber-500", tip: "WHOIS, DNS, lookalike" }, { label: "URL feed", value: urlHit ? 40 : 0, max: 40, color: "bg-red-500", tip: "URLhaus live database" }];
+  const indicatorScore = Math.min((result.indicators ?? []).length * 10, 30);
+  const bars = [{ label: "ML model", value: mlPct, max: 50, color: "bg-cyan-500", tip: "BERT phishing classifier" }, { label: "Tone", value: tonePct, max: 25, color: "bg-violet-500", tip: "Sentiment + authority" }, { label: "Indicators", value: indicatorScore, max: 30, color: "bg-orange-500", tip: "Suspicious requests" }, { label: "Domain intel", value: domainScore, max: 30, color: "bg-amber-500", tip: "WHOIS, DNS, lookalike" }, { label: "URL feed", value: urlHit ? 40 : 0, max: 40, color: "bg-red-500", tip: "URLhaus live database" }];
   return (
     <Card>
       <SectionLabel>Score breakdown</SectionLabel>
@@ -599,9 +600,11 @@ function EmailPanel({ simTrigger, onReportGenerated }) {
 function AudioPanel({ simTrigger, onReportGenerated }) {
   const [listening, setListening] = useState(false), [audioScore, setAudioScore] = useState(0), [audioLevel, setAudioLevel] = useState("LOW");
   const [transcript, setTranscript] = useState(""), [audioFlags, setAudioFlags] = useState([]), [audioError, setAudioError] = useState(null);
+  const [modelScores, setModelScores] = useState({});
   const [showModal, setShowModal] = useState(false), [sessionEnded, setSessionEnded] = useState(false), [duration, setDuration] = useState(0);
   const wsRef = useRef(null), streamRef = useRef(null), audioCtxRef = useRef(null), analyserRef = useRef(null), processorRef = useRef(null), sourceRef = useRef(null);
   const transcriptRef = useRef(null), timerRef = useRef(null), lastSimTrigger = useRef(0);
+  const latestState = useRef({ score: 0, flags: [], transcript: "" });
 
   useEffect(() => { if (transcriptRef.current) transcriptRef.current.scrollTop = transcriptRef.current.scrollHeight; }, [transcript]);
   useEffect(() => { if (listening) { setDuration(0); timerRef.current = setInterval(() => setDuration(d => d + 1), 1000); } else clearInterval(timerRef.current); return () => clearInterval(timerRef.current); }, [listening]);
@@ -620,7 +623,15 @@ function AudioPanel({ simTrigger, onReportGenerated }) {
     ws.onopen = () => { setListening(true); resolve(ws); };
     ws.onmessage = (event) => {
       const msg = JSON.parse(event.data);
-      if (msg.type === "transcript") { setTranscript(msg.full_transcript); setAudioScore(msg.cumulative_score); setAudioLevel(msg.risk_level); setAudioFlags(msg.flags ?? []); if (msg.risk_level === "HIGH") setShowModal(true); }
+      if (msg.type === "transcript") { 
+          setTranscript(msg.full_transcript); 
+          setAudioScore(msg.cumulative_score); 
+          setAudioLevel(msg.risk_level); 
+          setAudioFlags(msg.flags ?? []); 
+          setModelScores(msg.model_scores || {});
+          latestState.current = { score: msg.cumulative_score, flags: msg.flags ?? [], transcript: msg.full_transcript };
+          if (msg.risk_level === "HIGH") setShowModal(true); 
+      }
       if (msg.type === "session_end") { setTranscript(msg.full_transcript); setAudioScore(msg.final_score); setAudioFlags(msg.all_flags ?? []); setSessionEnded(true); onReportGenerated(generateAudioReport(msg)); }
       if (msg.type === "error") setAudioError(msg.message);
     };
@@ -636,7 +647,8 @@ function AudioPanel({ simTrigger, onReportGenerated }) {
   };
 
   const runSimulationAudio = async () => {
-    setAudioError(null); setTranscript(""); setAudioFlags([]); setAudioScore(0); setAudioLevel("LOW"); setSessionEnded(false); setShowModal(false);
+    setAudioError(null); setTranscript(""); setAudioFlags([]); setAudioScore(0); setAudioLevel("LOW"); setSessionEnded(false); setShowModal(false); setModelScores({});
+    latestState.current = { score: 0, flags: [], transcript: "" };
     try {
       const ws = await setupWS();
       const arrayBuf = await (await fetch("/scam-audio-clip1.mp3")).arrayBuffer();
@@ -654,7 +666,8 @@ function AudioPanel({ simTrigger, onReportGenerated }) {
   };
 
   const startListening = async () => {
-    setAudioError(null); setTranscript(""); setAudioFlags([]); setAudioScore(0); setAudioLevel("LOW"); setSessionEnded(false); setShowModal(false);
+    setAudioError(null); setTranscript(""); setAudioFlags([]); setAudioScore(0); setAudioLevel("LOW"); setSessionEnded(false); setShowModal(false); setModelScores({});
+    latestState.current = { score: 0, flags: [], transcript: "" };
     try { streamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch { setAudioError("Microphone permission denied."); return; }
     try { await setupWS(); } catch { return; }
     audioCtxRef.current = new AudioContext({ sampleRate: 16000 });
@@ -672,6 +685,15 @@ function AudioPanel({ simTrigger, onReportGenerated }) {
     audioCtxRef.current?.close(); audioCtxRef.current = null;
     wsRef.current?.close(); wsRef.current = null;
     analyserRef.current = null; setListening(false);
+
+    if (latestState.current.transcript) {
+        setSessionEnded(true);
+        onReportGenerated(generateAudioReport({
+            final_score: latestState.current.score,
+            all_flags: latestState.current.flags,
+            full_transcript: latestState.current.transcript
+        }));
+    }
   };
 
   const colors = RISK[audioLevel] ?? RISK["LOW"];
@@ -699,6 +721,15 @@ function AudioPanel({ simTrigger, onReportGenerated }) {
             {(listening || sessionEnded) && <span className={`text-[13px] font-bold px-3 py-1.5 rounded-full ${colors.pill}`}>{audioLevel}</span>}
           </div>
           <div className={`flex flex-col items-center py-2 ${!listening && !sessionEnded ? "opacity-20" : ""}`}><RiskGauge score={audioScore} level={audioLevel} size={140} /></div>
+          
+          {(listening || sessionEnded) && modelScores?.huggingface !== undefined && (
+            <div className="mt-4 flex justify-center">
+              <span className="text-[12px] px-3 py-1 rounded-full font-medium" style={{ background: "rgba(168,85,247,0.15)", color: "#c084fc", border: "1px solid rgba(168,85,247,0.3)" }}>
+                Hugging Face AI: {modelScores.huggingface}% Fake
+              </span>
+            </div>
+          )}
+
           {!listening && !sessionEnded && <p className="text-center text-[14px] mt-4" style={{ color: C.dim }}>Waiting for audio stream...</p>}
           {sessionEnded && <p className="text-center text-[14px] mt-4 font-medium" style={{ color: C.muted }}>Session ended — report saved to Logs tab</p>}
         </div>

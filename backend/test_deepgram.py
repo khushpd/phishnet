@@ -1,7 +1,7 @@
 import asyncio
 from deepgram import DeepgramClient
 
-DEEPGRAM_API_KEY = "42cfcc31320026fa12e1a1841994c4d9be281c03"
+DEEPGRAM_API_KEY = "YOUR_DEEPGRAM_API_KEY"
 
 async def test():
     deepgram = DeepgramClient(api_key=DEEPGRAM_API_KEY)
